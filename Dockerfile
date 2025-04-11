@@ -9,7 +9,8 @@ RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
 # Install dependencies based on the preferred package manager
-COPY package.json yarn.lock* package-lock.json* pnpm-lock.yaml* .npmrc* ./
+COPY project/package.json project/yarn.lock* project/package-lock.json* project/pnpm-lock.yaml* project/.npmrc* ./
+
 RUN \
   if [ -f yarn.lock ]; then yarn --frozen-lockfile; \
   elif [ -f package-lock.json ]; then npm ci; \
@@ -21,12 +22,10 @@ RUN \
 # Rebuild the source code only when needed
 FROM base AS builder
 WORKDIR /app
-
-# Copy .env for build
-COPY /project/.env .env
-
 COPY --from=deps /app/node_modules ./node_modules
-COPY . .
+COPY project .
+
+COPY .env .env
 
 # Next.js collects completely anonymous telemetry data about general usage.
 # Learn more here: https://nextjs.org/telemetry
